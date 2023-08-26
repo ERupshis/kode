@@ -29,10 +29,10 @@ func CreatePostgresDB(cfg *config.Config, log logger.BaseLogger) (Manager, error
 	}
 
 	storageDB := &postgresDB{database: db, log: &log}
-	err = storageDB.createDataBaseIfNeed(cfg.DbName)
+	err = storageDB.createDataBaseIfNeedAndOpen(cfg)
 	if err != nil {
 		log.Info("[storage::CreatePostgresDB] Failed to check or create Database: %v", err)
 	}
 
-	return &postgresDB{database: db, log: &log}, err
+	return storageDB, err
 }
