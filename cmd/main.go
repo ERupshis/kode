@@ -16,9 +16,12 @@ func main() {
 	log := logger.CreateZapLogger(cfg.LogLevel)
 	defer log.Sync()
 
-	storageRam := storage.CreateRamStorage()
-
-	serverController := controller.Create(log, storageRam)
+	//storageRam := storage.CreateRamStorage()
+	storageDB, err := storage.CreatePostgresDB(&cfg, log)
+	if err != nil {
+		panic(err)
+	}
+	serverController := controller.Create(log, storageDB)
 
 	router := chi.NewRouter()
 	router.Mount("/", serverController.Route())

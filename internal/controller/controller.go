@@ -47,18 +47,24 @@ func (c *Controller) getHandler(w http.ResponseWriter, r *http.Request) {
 
 	username, _, _ := r.BasicAuth()
 	var output jsonmsg.Output
-	output.Texts = c.storage.GetTexts(username)
+	var err error
+	output.Texts, err = c.storage.GetTexts(username)
+	if err != nil {
+		c.logger.Info("[Controller::postHandler] Error during storage access: %v", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	buf, err := json.Marshal(&output)
 	if err != nil {
-		c.logger.Info("[Controller::postHandler] Error during data parsing")
+		c.logger.Info("[Controller::postHandler] Error during data parsing: %v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	_, err = w.Write(buf)
 	if err != nil {
-		c.logger.Info("[Controller::postHandler] Error writing data in response body")
+		c.logger.Info("[Controller::postHandler] Error writing data in response body: %v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -78,7 +84,7 @@ func (c *Controller) postHandler(w http.ResponseWriter, r *http.Request) {
 	c.logger.Info("[Controller::postHandler] Handle JSON request with body: %s", buf.String())
 	var input jsonmsg.Input
 	if err := json.Unmarshal(buf.Bytes(), &input); err != nil {
-		c.logger.Info("[Controller::postHandler] Error during JSON parsing")
+		c.logger.Info("[Controller::postHandler] Error during JSON parsing: %v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
