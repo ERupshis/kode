@@ -49,7 +49,7 @@ func TestUser_Auth(t *testing.T) {
 			mockUser := Create()
 			mockHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusOK)
-				w.Write([]byte("Authorized Content"))
+				_, _ = w.Write([]byte("Authorized Content"))
 			})
 
 			req, err := http.NewRequest(http.MethodPost, "/", nil)

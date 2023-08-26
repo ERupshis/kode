@@ -16,12 +16,12 @@ func main() {
 	log := logger.CreateZapLogger(cfg.LogLevel)
 	defer log.Sync()
 
-	storage := storage.CreateRamStorage()
+	storageRam := storage.CreateRamStorage()
 
-	controller := controller.Create(log, storage)
+	serverController := controller.Create(log, storageRam)
 
 	router := chi.NewRouter()
-	router.Mount("/", controller.Route())
+	router.Mount("/", serverController.Route())
 
 	log.Info("Server started with Host setting: %s", cfg.Host)
 	if err := http.ListenAndServe(cfg.Host, router); err != nil {

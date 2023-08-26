@@ -13,14 +13,14 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-type controller struct {
+type Controller struct {
 	storage storage.Manager
 	logger  logger.BaseLogger
 	users   user.Users
 }
 
-func Create(logger logger.BaseLogger, storage storage.Manager) *controller {
-	controller := &controller{
+func Create(logger logger.BaseLogger, storage storage.Manager) *Controller {
+	controller := &Controller{
 		storage: storage,
 		logger:  logger,
 		users:   *user.Create(),
@@ -29,7 +29,7 @@ func Create(logger logger.BaseLogger, storage storage.Manager) *controller {
 	return controller
 }
 
-func (c *controller) Route() *chi.Mux {
+func (c *Controller) Route() *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Use(c.logger.LogHandler)
@@ -42,23 +42,23 @@ func (c *controller) Route() *chi.Mux {
 	return r
 }
 
-func (c *controller) getHandler(w http.ResponseWriter, r *http.Request) {
-	c.logger.Info("[controller::getHandler] Handle Get request")
+func (c *Controller) getHandler(w http.ResponseWriter, r *http.Request) {
+	c.logger.Info("[Controller::getHandler] Handle Get request")
 
-	user, _, _ := r.BasicAuth()
+	username, _, _ := r.BasicAuth()
 	var output jsonmsg.Output
-	output.Texts = c.storage.GetTexts(user)
+	output.Texts = c.storage.GetTexts(username)
 
 	buf, err := json.Marshal(&output)
 	if err != nil {
-		c.logger.Info("[controller::postHandler] Error during data parsing")
+		c.logger.Info("[Controller::postHandler] Error during data parsing")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	_, err = w.Write(buf)
 	if err != nil {
-		c.logger.Info("[controller::postHandler] Error writing data in response body")
+		c.logger.Info("[Controller::postHandler] Error writing data in response body")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -66,7 +66,7 @@ func (c *controller) getHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 }
 
-func (c *controller) postHandler(w http.ResponseWriter, r *http.Request) {
+func (c *Controller) postHandler(w http.ResponseWriter, r *http.Request) {
 	var buf bytes.Buffer
 	_, err := buf.ReadFrom(r.Body)
 	if err != nil {
@@ -75,20 +75,20 @@ func (c *controller) postHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	c.logger.Info("[controller::postHandler] Handle JSON request with body: %s", buf.String())
+	c.logger.Info("[Controller::postHandler] Handle JSON request with body: %s", buf.String())
 	var input jsonmsg.Input
 	if err := json.Unmarshal(buf.Bytes(), &input); err != nil {
-		c.logger.Info("[controller::postHandler] Error during JSON parsing")
+		c.logger.Info("[Controller::postHandler] Error during JSON parsing")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	spelledText, err := spellchecker.Handle(input.Text)
 	if err != nil {
-		c.logger.Info("[controller::postHandler] Failed to spell input data: %v. Added original text", err)
+		c.logger.Info("[Controller::postHandler] Failed to spell input data: %v. Added original text", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
-	user, _, _ := r.BasicAuth()
-	c.storage.AddText(user, spelledText)
+	username, _, _ := r.BasicAuth()
+	c.storage.AddText(username, spelledText)
 }
