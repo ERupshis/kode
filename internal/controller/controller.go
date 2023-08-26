@@ -7,6 +7,7 @@ import (
 
 	"github.com/erupshis/kode.git/internal/jsonmsg"
 	"github.com/erupshis/kode.git/internal/logger"
+	"github.com/erupshis/kode.git/internal/spellchecker"
 	"github.com/erupshis/kode.git/internal/storage"
 	"github.com/erupshis/kode.git/internal/user"
 	"github.com/go-chi/chi/v5"
@@ -82,6 +83,12 @@ func (c *controller) postHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	spelledText, err := spellchecker.Handle(input.Text)
+	if err != nil {
+		c.logger.Info("[controller::postHandler] Failed to spell input data: %v. Added original text", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+
 	user, _, _ := r.BasicAuth()
-	c.storage.AddText(user, input.Text)
+	c.storage.AddText(user, spelledText)
 }
