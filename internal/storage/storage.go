@@ -12,3 +12,7 @@ func (s *Storage) AddText(user string, text string) error {
 func (s *Storage) GetTexts(user string) ([]string, error) {
 	return s.usersStorage[user], nil
 }
+
+func (s *Storage) Close() {
+	//NOTHING TO DO.
+}

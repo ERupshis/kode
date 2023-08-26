@@ -21,12 +21,13 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	defer storageDB.Close()
 	serverController := controller.Create(log, storageDB)
 
 	router := chi.NewRouter()
 	router.Mount("/", serverController.Route())
 
-	log.Info("Server started with Host setting: %s", cfg.Host)
+	log.Info("[main] Server started with Host setting: %s", cfg.Host)
 	if err := http.ListenAndServe(cfg.Host, router); err != nil {
 		panic(err)
 	}

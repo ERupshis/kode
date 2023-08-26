@@ -5,10 +5,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestStorage_AddText(t *testing.T) {
-	storage := CreateRamStorage()
+	storage, err := CreateRamStorage()
+	require.NoError(t, err)
 
 	type args struct {
 		user string
@@ -46,13 +48,16 @@ func TestStorage_AddText(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			storage.AddText(tt.args.user, tt.args.text)
-			assert.Equal(t, tt.want.elementsCount, len(storage.GetTexts(tt.args.user)))
+			texts, err := storage.GetTexts(tt.args.user)
+			require.NoError(t, err)
+			assert.Equal(t, tt.want.elementsCount, len(texts))
 		})
 	}
 }
 
 func TestStorage_GetTexts(t *testing.T) {
-	storage := CreateRamStorage()
+	storage, err := CreateRamStorage()
+	require.NoError(t, err)
 
 	type args struct {
 		user string
@@ -155,7 +160,9 @@ func TestStorage_GetTexts(t *testing.T) {
 			}
 
 			for _, wantData := range tt.want.data {
-				assert.Equal(t, reflect.DeepEqual(storage.GetTexts(wantData.user), wantData.texts), wantData.res)
+				texts, err := storage.GetTexts(wantData.user)
+				require.NoError(t, err)
+				assert.Equal(t, reflect.DeepEqual(texts, wantData.texts), wantData.res)
 			}
 		})
 	}
