@@ -6,12 +6,12 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type User struct {
+type Users struct {
 	usersPasswords map[string][]byte
 }
 
-func Create() *User {
-	users := &User{}
+func Create() *Users {
+	users := &Users{}
 
 	users.usersPasswords = map[string][]byte{
 		"asd": []byte(`$2a$10$o5uBq878SF50DzFmcVyB.elVkH461ObMOnC9pu2pxMKDyuVPKXW8C`), //pwd: asd                                                         //pwd: 123
@@ -21,7 +21,7 @@ func Create() *User {
 	return users
 }
 
-func (u *User) verifyUserPass(username, password string) bool {
+func (u *Users) verifyUserPass(username, password string) bool {
 	userPass, ok := u.usersPasswords[username]
 	if !ok {
 		return false
@@ -34,7 +34,7 @@ func (u *User) verifyUserPass(username, password string) bool {
 	return false
 }
 
-func (u *User) Auth(h http.Handler) http.Handler {
+func (u *Users) Auth(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user, pass, ok := r.BasicAuth()
 		if ok && u.verifyUserPass(user, pass) {

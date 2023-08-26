@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/erupshis/kode.git/internal/config"
 	"github.com/erupshis/kode.git/internal/jsonmsg"
 	"github.com/erupshis/kode.git/internal/logger"
 	"github.com/erupshis/kode.git/internal/storage"
@@ -14,16 +13,14 @@ import (
 )
 
 type controller struct {
-	config  config.Config
-	storage storage.Storage
+	storage storage.Manager
 	logger  logger.BaseLogger
-	users   user.User
+	users   user.Users
 }
 
-func Create(config config.Config, logger logger.BaseLogger) *controller {
+func Create(logger logger.BaseLogger, storage storage.Manager) *controller {
 	controller := &controller{
-		config:  config,
-		storage: *storage.Create(),
+		storage: storage,
 		logger:  logger,
 		users:   *user.Create(),
 	}
@@ -36,17 +33,36 @@ func (c *controller) Route() *chi.Mux {
 
 	r.Use(c.logger.LogHandler)
 	r.Use(c.users.Auth)
-	r.Get("/", c.getHandler)
 
-	//TODO: need to wrap data.
+	r.Get("/", c.getHandler)
 	r.Post("/", c.postHandler)
 
 	r.NotFound(http.NotFound)
 	return r
 }
 
-func (c *controller) getHandler(w http.ResponseWriter, _ *http.Request) {
-	w.WriteHeader(http.StatusOK)
+func (c *controller) getHandler(w http.ResponseWriter, r *http.Request) {
+	c.logger.Info("[controller::getHandler] Handle Get request")
+
+	user, _, _ := r.BasicAuth()
+	var output jsonmsg.Output
+	output.Texts = c.storage.GetTexts(user)
+
+	buf, err := json.Marshal(&output)
+	if err != nil {
+		c.logger.Info("[controller::postHandler] Error during data parsing")
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	_, err = w.Write(buf)
+	if err != nil {
+		c.logger.Info("[controller::postHandler] Error writing data in response body")
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
 }
 
 func (c *controller) postHandler(w http.ResponseWriter, r *http.Request) {
@@ -67,8 +83,5 @@ func (c *controller) postHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user, _, _ := r.BasicAuth()
-	//TODO: need Ya.Speller package.
 	c.storage.AddText(user, input.Text)
-
-	w.WriteHeader(http.StatusOK)
 }

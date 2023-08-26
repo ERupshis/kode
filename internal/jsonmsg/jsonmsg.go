@@ -6,5 +6,5 @@ type Input struct {
 }
 
 type Output struct {
-	Texts []string `json:"dataArray"`
+	Texts []string `json:"data"`
 }
