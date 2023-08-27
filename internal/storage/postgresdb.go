@@ -12,12 +12,6 @@ import (
 
 const schemaName = "notes"
 
-type UserTexts struct {
-	Username string `json:"user_name"`
-	Text     string `json:"user_text"`
-	Time     string `json:"time"`
-}
-
 type postgresDB struct {
 	database *sql.DB
 	log      *logger.BaseLogger
