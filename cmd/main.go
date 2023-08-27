@@ -16,7 +16,8 @@ func main() {
 	log := logger.CreateZapLogger(cfg.LogLevel)
 	defer log.Sync()
 
-	//storageRam := storage.CreateRamStorage()
+	//storageRam, _ := storage.CreateRamStorage()
+	//serverController := controller.Create(log, storageRam)
 	storageDB, err := storage.CreatePostgresDB(&cfg, log)
 	if err != nil {
 		panic(err)
