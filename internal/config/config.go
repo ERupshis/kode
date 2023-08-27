@@ -33,7 +33,7 @@ func checkFlags(config *Config) {
 	flag.StringVar(&config.Host, flagAddress, "localhost:8080", "server endpoint")
 	flag.StringVar(&config.DbUser, flagDbSUser, "postgres", "database super user name")
 	flag.StringVar(&config.DbPassword, flagDbSUserPwd, "postgres", "database super user password")
-	flag.StringVar(&config.DbName, flagDbName, "kodetest", "database name")
+	flag.StringVar(&config.DbName, flagDbName, "kode_test", "database name")
 	flag.Parse()
 }
 
