@@ -22,9 +22,9 @@ func Test_controller_postHandler(t *testing.T) {
 	log := logger.CreateZapLogger(cfg.LogLevel)
 	//defer log.Sync()
 
-	storage, err := storage.CreateRamStorage()
+	storageRam, err := storage.CreateRamStorage()
 	require.NoError(t, err)
-	ts := httptest.NewServer(Create(log, storage).Route())
+	ts := httptest.NewServer(Create(log, storageRam).Route())
 	defer ts.Close()
 
 	type reqJSON struct {
@@ -156,9 +156,9 @@ func Test_controller_getHandler(t *testing.T) {
 	log := logger.CreateZapLogger(cfg.LogLevel)
 	//defer log.Sync()
 
-	storage, err := storage.CreateRamStorage()
+	storageRam, err := storage.CreateRamStorage()
 	require.NoError(t, err)
-	ts := httptest.NewServer(Create(log, storage).Route())
+	ts := httptest.NewServer(Create(log, storageRam).Route())
 	defer ts.Close()
 
 	type reqJSON struct {

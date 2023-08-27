@@ -26,7 +26,7 @@ func (db *postgresDB) createDataBase(cfg *config.Config) error {
 		return err
 	}
 
-	if err := db.createSchemaIfNeed(cfg); err != nil {
+	if err := db.createSchemaIfNeed(); err != nil {
 		return err
 	}
 

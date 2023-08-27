@@ -47,7 +47,7 @@ func TestStorage_AddText(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			storage.AddText(tt.args.user, tt.args.text)
+			_ = storage.AddText(tt.args.user, tt.args.text)
 			texts, err := storage.GetTexts(tt.args.user)
 			require.NoError(t, err)
 			assert.Equal(t, tt.want.elementsCount, len(texts))
@@ -156,7 +156,7 @@ func TestStorage_GetTexts(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			for _, argData := range tt.add.data {
-				storage.AddText(argData.user, argData.text)
+				_ = storage.AddText(argData.user, argData.text)
 			}
 
 			for _, wantData := range tt.want.data {
