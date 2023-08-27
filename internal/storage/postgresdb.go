@@ -66,8 +66,8 @@ func (db *postgresDB) openDB(cfg *config.Config) error {
 		db.Close()
 	}
 
-	dataSrcName := fmt.Sprintf(" user=%s password=%s dbname=%s sslmode=disable",
-		cfg.DbUser, cfg.DbPassword, strings.ToLower(cfg.DbName))
+	dataSrcName := fmt.Sprintf(" host=%s user=%s password=%s dbname=%s sslmode=disable",
+		cfg.DbHost, cfg.DbUser, cfg.DbPassword, strings.ToLower(cfg.DbName))
 
 	var err error
 	db.database, err = sql.Open("postgres", dataSrcName)

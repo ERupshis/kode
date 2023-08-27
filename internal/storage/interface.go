@@ -21,7 +21,7 @@ func CreateRamStorage() (Manager, error) {
 }
 
 func CreatePostgresDB(cfg *config.Config, log logger.BaseLogger) (Manager, error) {
-	dataSrcName := fmt.Sprintf("user=%s password=%s dbname=postgres sslmode=disable", cfg.DbUser, cfg.DbPassword)
+	dataSrcName := fmt.Sprintf("host=%s user=%s password=%s dbname=postgres sslmode=disable", cfg.DbHost, cfg.DbUser, cfg.DbPassword)
 	log.Info("[storage::CreatePostgresDB] Start open postgres DB with settings: %s", dataSrcName)
 	db, err := sql.Open("postgres", dataSrcName)
 	if err != nil {
