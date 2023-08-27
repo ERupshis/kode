@@ -74,7 +74,7 @@ func (db *postgresDB) openDB(cfg *config.Config) error {
 	return err
 }
 
-func (db *postgresDB) createSchemaIfNeed(cfg *config.Config) error {
+func (db *postgresDB) createSchemaIfNeed() error {
 	createSchemaSQL := fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %s;", schemaName)
 	if _, err := db.database.Exec(createSchemaSQL); err != nil {
 		return err
