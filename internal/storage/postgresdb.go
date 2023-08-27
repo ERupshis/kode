@@ -36,7 +36,7 @@ func (db *postgresDB) createDataBase(cfg *config.Config) error {
 		return err
 	}
 
-	if err := db.createTableIfNeed(cfg); err != nil {
+	if err := db.createTableIfNeed(); err != nil {
 		return err
 	}
 
@@ -93,9 +93,9 @@ func (db *postgresDB) createSchemaIfNeed(cfg *config.Config) error {
 	return nil
 }
 
-func (db *postgresDB) createTableIfNeed(cfg *config.Config) error {
+func (db *postgresDB) createTableIfNeed() error {
 	createTableSql := `CREATE TABLE IF NOT EXISTS notes 
-		(id INTEGER, username TEXT, note TEXT, time TIMESTAMP PRIMARY KEY);`
+		(time TIMESTAMP PRIMARY KEY, username TEXT, note TEXT);`
 
 	if _, err := db.database.Exec(createTableSql); err != nil {
 		return err
@@ -105,9 +105,9 @@ func (db *postgresDB) createTableIfNeed(cfg *config.Config) error {
 }
 
 func (db *postgresDB) AddText(username, text string) error {
-	addTextSQL := fmt.Sprintf(`INSERT INTO %s.notes (id, username, note, time) 
-		VALUES (%d, '%s', '%s', clock_timestamp());`,
-		schemaName, 10, username, text)
+	addTextSQL := fmt.Sprintf(`INSERT INTO %s.notes (time, username, note) 
+		VALUES (clock_timestamp(), '%s', '%s');`,
+		schemaName, username, text)
 
 	if _, err := db.database.Exec(addTextSQL); err != nil {
 		return err
