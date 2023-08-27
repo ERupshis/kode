@@ -8,14 +8,14 @@ import (
 	"github.com/erupshis/kode.git/internal/config"
 	"github.com/erupshis/kode.git/internal/logger"
 	"github.com/lib/pq"
-	_ "github.com/lib/pq"
 )
 
 const schemaName = "notes"
 
 type UserTexts struct {
-	Username string   `json:"username"`
-	Texts    []string `json:"texts"`
+	Username string `json:"user_name"`
+	Text     string `json:"user_text"`
+	Time     string `json:"time"`
 }
 
 type postgresDB struct {
@@ -23,8 +23,12 @@ type postgresDB struct {
 	log      *logger.BaseLogger
 }
 
-func (db *postgresDB) createDataBaseIfNeedAndOpen(cfg *config.Config) error {
+func (db *postgresDB) createDataBase(cfg *config.Config) error {
 	if err := db.createDataBaseIfNeed(cfg); err != nil {
+		return err
+	}
+
+	if err := db.openDB(cfg); err != nil {
 		return err
 	}
 
@@ -56,29 +60,29 @@ func (db *postgresDB) createDataBaseIfNeed(cfg *config.Config) error {
 	}
 
 	grantDatabaseSQL := fmt.Sprintf("GRANT ALL ON DATABASE %s to %s;", cfg.DbName, cfg.DbUser)
-	if _, err := db.database.Exec(grantDatabaseSQL); err != nil {
-		return err
-	}
-
-	db.database.Close()
-
-	dataSrcName := fmt.Sprintf(" user=%s password=%s dbname=%s sslmode=disable", cfg.DbUser, cfg.DbPassword, dbName)
-	db.database, err = sql.Open("postgres", dataSrcName)
-	if err != nil {
+	if _, err = db.database.Exec(grantDatabaseSQL); err != nil {
 		return err
 	}
 
 	return nil
 }
 
+func (db *postgresDB) openDB(cfg *config.Config) error {
+	if db.database != nil {
+		db.Close()
+	}
+
+	dataSrcName := fmt.Sprintf(" user=%s password=%s dbname=%s sslmode=disable",
+		cfg.DbUser, cfg.DbPassword, strings.ToLower(cfg.DbName))
+
+	var err error
+	db.database, err = sql.Open("postgres", dataSrcName)
+	return err
+}
+
 func (db *postgresDB) createSchemaIfNeed(cfg *config.Config) error {
 	createSchemaSQL := fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %s;", schemaName)
 	if _, err := db.database.Exec(createSchemaSQL); err != nil {
-		return err
-	}
-
-	grantSchemaSQL := fmt.Sprintf("GRANT ALL PRIVILEGES ON SCHEMA %s TO %s;", schemaName, cfg.DbUser)
-	if _, err := db.database.Exec(grantSchemaSQL); err != nil {
 		return err
 	}
 
@@ -90,23 +94,10 @@ func (db *postgresDB) createSchemaIfNeed(cfg *config.Config) error {
 }
 
 func (db *postgresDB) createTableIfNeed(cfg *config.Config) error {
-	createTableSql := "CREATE TABLE IF NOT EXISTS user_texts (username VARCHAR PRIMARY KEY, texts TEXT[]);"
+	createTableSql := `CREATE TABLE IF NOT EXISTS notes 
+		(id INTEGER, username TEXT, note TEXT, time TIMESTAMP PRIMARY KEY);`
+
 	if _, err := db.database.Exec(createTableSql); err != nil {
-		return err
-	}
-
-	grantTableSQL := fmt.Sprintf("GRANT ALL PRIVILEGES ON TABLE %s TO %s;", "user_texts", cfg.DbUser)
-	if _, err := db.database.Exec(grantTableSQL); err != nil {
-		return err
-	}
-
-	grantSequencesSQL := fmt.Sprintf("GRANT SELECT, UPDATE, USAGE ON ALL SEQUENCES IN SCHEMA %s TO %s;", schemaName, cfg.DbUser)
-	if _, err := db.database.Exec(grantSequencesSQL); err != nil {
-		return err
-	}
-
-	grantFuncsSQL := fmt.Sprintf("GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA %s TO %s;", schemaName, cfg.DbUser)
-	if _, err := db.database.Exec(grantFuncsSQL); err != nil {
 		return err
 	}
 
@@ -114,15 +105,25 @@ func (db *postgresDB) createTableIfNeed(cfg *config.Config) error {
 }
 
 func (db *postgresDB) AddText(username, text string) error {
-	_, err := db.database.Exec("UPDATE user_texts SET texts = array_append(texts, $1) WHERE username = $2", text, username)
-	return err
+	addTextSQL := fmt.Sprintf(`INSERT INTO %s.notes (id, username, note, time) 
+		VALUES (%d, '%s', '%s', clock_timestamp());`,
+		schemaName, 10, username, text)
+
+	if _, err := db.database.Exec(addTextSQL); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (db *postgresDB) GetTexts(username string) ([]string, error) {
-	var userTexts UserTexts
-	row := db.database.QueryRow("SELECT username, texts FROM user_texts WHERE username = $1", username)
-	var textArray pq.StringArray // Use pq.StringArray to scan array of strings
-	err := row.Scan(&userTexts.Username, &textArray)
+	getTextsSQL := fmt.Sprintf(`SELECT ARRAY(
+    	SELECT note FROM %s.notes WHERE username = '%s' ORDER BY time ASC);`,
+		schemaName, username)
+
+	row := db.database.QueryRow(getTextsSQL)
+	var textArray pq.StringArray
+	err := row.Scan(&textArray)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -131,8 +132,7 @@ func (db *postgresDB) GetTexts(username string) ([]string, error) {
 		return nil, err
 	}
 
-	userTexts.Texts = textArray
-	return userTexts.Texts, nil
+	return textArray, nil
 }
 
 func (db *postgresDB) Close() {
