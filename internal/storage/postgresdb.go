@@ -10,7 +10,10 @@ import (
 	"github.com/lib/pq"
 )
 
-const schemaName = "user_notes"
+const (
+	schemaName = "user_notes"
+	tableName  = "notes"
+)
 
 type postgresDB struct {
 	database *sql.DB
@@ -38,14 +41,14 @@ func (db *postgresDB) createDataBase(cfg *config.Config) error {
 }
 
 func (db *postgresDB) createDataBaseIfNeed(cfg *config.Config) error {
-	dbName := strings.ToLower(cfg.DbName)
 	var exists bool
-	checkDbSQL := "SELECT EXISTS (SELECT 1 FROM pg_database WHERE datname = $1);"
-	err := db.database.QueryRow(checkDbSQL, dbName).Scan(&exists)
+	var err error
+	exists, err = db.isExistDB(cfg)
 	if err != nil {
 		return err
 	}
 
+	dbName := strings.ToLower(cfg.DbName)
 	if !exists {
 		createDbSQL := fmt.Sprintf("CREATE DATABASE %s OWNER =  %s;", dbName, cfg.DbUser)
 		if _, err = db.database.Exec(createDbSQL); err != nil {
@@ -62,16 +65,34 @@ func (db *postgresDB) createDataBaseIfNeed(cfg *config.Config) error {
 }
 
 func (db *postgresDB) openDB(cfg *config.Config) error {
-	if db.database != nil {
-		db.Close()
+	var exists bool
+	var err error
+	exists, err = db.isExistDB(cfg)
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		return fmt.Errorf("[postgresDB::openDB] DB '%s' doesn't exist", cfg.DbName)
 	}
 
 	dataSrcName := fmt.Sprintf(" host=%s user=%s password=%s dbname=%s sslmode=disable",
 		cfg.DbHost, cfg.DbUser, cfg.DbPassword, strings.ToLower(cfg.DbName))
 
-	var err error
 	db.database, err = sql.Open("postgres", dataSrcName)
 	return err
+}
+
+func (db *postgresDB) isExistDB(cfg *config.Config) (bool, error) {
+	dbName := strings.ToLower(cfg.DbName)
+	var exists bool
+	checkDbSQL := "SELECT EXISTS (SELECT 1 FROM pg_database WHERE datname = $1);"
+	err := db.database.QueryRow(checkDbSQL, dbName).Scan(&exists)
+	if err != nil {
+		return false, err
+	}
+
+	return exists, err
 }
 
 func (db *postgresDB) createSchemaIfNeed() error {
