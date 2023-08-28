@@ -10,7 +10,7 @@ import (
 	"github.com/lib/pq"
 )
 
-const schemaName = "notes"
+const schemaName = "user_notes"
 
 type postgresDB struct {
 	database *sql.DB
