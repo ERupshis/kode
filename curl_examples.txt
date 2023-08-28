@@ -1,0 +1,38 @@
+// VALID CORRECT NOTE
+curl -X POST http://localhost:8080/ --user "asd:asd" -H 'Content-Type: application/json' -d '{"data":"some_text"}'
+
+// VALID CORRECT NOTE WITH MISTAKE
+curl -X POST http://localhost:8080/ --user "asd:asd" -H 'Content-Type: application/json' -d '{"data":"incorect"}'
+
+// VALID CORRECT NOTE RU
+curl -X POST http://localhost:8080/ --user "asd:asd" -H 'Content-Type: application/json' -d '{"data":"корректный текст"}'
+
+// VALID CORRECT NOTE RU WITH MISTAKE
+curl -X POST http://localhost:8080/ --user "asd:asd" -H 'Content-Type: application/json' -d '{"data":"текст с ошбкой"}'
+
+// INVALID CORRECT NOTE WITHOUT AUTH
+curl -X POST http://localhost:8080/ --user "asd:a" -H 'Content-Type: application/json' -d '{"data":"some_text"}'
+
+// INVALID CORRECT NOTE WITH MISTAKE WITHOUT AUTH
+curl -X POST http://localhost:8080/ --user "asd:a" -H 'Content-Type: application/json' -d '{"data":"incorect"}'
+
+// INVALID CORRECT NOTE WITH AUTH WITH WRONG URL
+curl -X POST http://localhost:8080/sdf --user "asd:a" -H 'Content-Type: application/json' -d '{"data":"some_text"}'
+
+// INVALID CORRECT NOTE WITH MISTAKE WITHOUT AUTH WITH WRONG URL
+curl -X POST http://localhost:8080/sdfgsd --user "asd:a" -H 'Content-Type: application/json' -d '{"data":"incorect"}'
+
+// VALID CORRECT WITH BROKEN BODY
+curl -X POST http://localhost:8080/ --user "asd:asd" -H 'Content-Type: application/json' -d '{"data":"som'
+
+// VALID CORRECT URL
+curl -X GET http://localhost:8080/ --user "asd:asd" -H 'Content-Type: application/json'
+
+// INVALID CORRECT URL WITHOUT AUTH
+curl -X GET http://localhost:8080/ --user "asd:a" -H 'Content-Type: application/json'
+
+// INVALID WRONG URL WITH AUTH
+curl -X GET http://localhost:8080/sdgvd --user "asd:asd" -H 'Content-Type: application/json'
+
+// INVALID WRONG URL WITHout AUTH
+curl -X GET http://localhost:8080/sdgvd --user "asd:a" -H 'Content-Type: application/json'
