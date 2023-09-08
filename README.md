@@ -1,4 +1,4 @@
-# test task for KODE
+# Test task for KODE
 description:
 It is necessary to design and implement a service in Golang, providing REST API interface with methods:
 - add note;
