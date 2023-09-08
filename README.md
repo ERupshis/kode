@@ -1,4 +1,16 @@
-# kode
+# test task for KODE
+description:
+It is necessary to design and implement a service in Golang, providing REST API interface with methods:
+- add note;
+- output the list of notes.
+
+Data should be stored in PostgreSQL.
+When saving notes it is necessary to validate spelling errors using the Yandex.Speller service (add integration with the service).
+
+It is also necessary to implement authentication and authorization. Users should have access only to their notes. The possibility of registration is not mandatory, it is acceptable to have a predefined set of users (the mechanism of storing accounts is any, up to hardcode in the application).
+
+
+# Comments for checking:
 hardcoded users:
 - asd : asd
 - qwe : qwe
